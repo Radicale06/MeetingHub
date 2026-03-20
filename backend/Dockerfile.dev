@@ -1,0 +1,20 @@
+# Use the official Node.js image as the base image
+FROM node:20
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy package.json and package-lock.json to the working directory
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install --fetch-retry-mintimeout 20000 --fetch-retry-maxtimeout 120000 --fetch-retries 5
+
+# Copy the rest of the application code
+COPY . .
+
+# Expose the port your app will run on
+EXPOSE 6001
+
+# Copy and run the script
+CMD ["/bin/sh", "-c", "sed -i 's/\\r$//' /app/scripts/start.dev.sh && chmod +x /app/scripts/start.dev.sh && /app/scripts/start.dev.sh"]

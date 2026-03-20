@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  # ── Redis ────────────────────────────────────
+  redis:
+    image: redis:7
+    container_name: meetinghub-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  # ── LiveKit Server ───────────────────────────
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: meetinghub-livekit
+    volumes:
+      - ./livekit.yaml:/etc/livekit.yaml
+    command: --config /etc/livekit.yaml --keys "${LIVEKIT_API_KEY:-devkey}: ${LIVEKIT_API_SECRET:-secret}"
+    ports:
+      - "7880:7880"           # WebSocket / Client
+      - "7881:7881"           # TURN TCP
+      - "3478:3478/udp"       # TURN/STUN UDP
+      - "5349:5349"           # TURN TLS
+      - "7882-7892:7882-7892/udp"  # WebRTC media UDP
+    depends_on:
+      - redis
+    restart: always
+
+  # ── LiveKit SIP (optional, not wired yet) ────
+  sip:
+    image: livekit/sip:latest
+    container_name: meetinghub-sip
+    ports:
+      - "5060:5060/tcp"
+      - "5060:5060/udp"
+      - "10000-10100:10000-10100/udp"
+    environment:
+      SIP_CONFIG_BODY: |
+        api_key: '${LIVEKIT_API_KEY}'
+        api_secret: '${LIVEKIT_API_SECRET}'
+        ws_url: '${LIVEKIT_WS_URL}'
+        redis:
+          address: 'redis:6379'
+        sip_port: 5060
+        rtp_port: 10000-10100
+        use_external_ip: true
+        logging:
+          level: ${SIP_LOG_LEVEL:-info}
+    depends_on:
+      - livekit
+      - redis
+    restart: always
+
+  # ── LiveKit Egress (recording) ───────────────
+  egress:
+    image: livekit/egress:latest
+    container_name: meetinghub-egress
+    environment:
+      EGRESS_CONFIG_BODY: |
+        api_key: '${LIVEKIT_API_KEY}'
+        api_secret: '${LIVEKIT_API_SECRET}'
+        ws_url: '${LIVEKIT_WS_URL}'
+        redis:
+          address: 'redis:6379'
+        s3:
+          access_key: '${SUPABASE_S3_ACCESS_KEY}'
+          secret: '${SUPABASE_S3_SECRET_KEY}'
+          region: 'stub'
+          endpoint: '${SUPABASE_S3_ENDPOINT}'
+          bucket: '${SUPABASE_BUCKET_NAME}'
+          force_path_style: true
+        logging:
+          level: info
+    depends_on:
+      - livekit
+      - redis
+    restart: always
+
+  # ── LibreTranslate (self-hosted translation) ─
+  libretranslate:
+    image: libretranslate/libretranslate:latest
+    container_name: meetinghub-translate
+    ports:
+      - "5555:5000"
+    environment:
+      LT_LOAD_ONLY: "en,fr,ar,es,de,zh,pt,ru,ja,ko"
+      LT_DISABLE_WEB_UI: "true"
+    volumes:
+      - libretranslate_data:/home/libretranslate/.local
+    restart: always
+
+volumes:
+  redis_data:
+  libretranslate_data:
+
+networks:
+  default:
+    name: network
+    external: true

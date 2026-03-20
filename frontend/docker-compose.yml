@@ -1,0 +1,36 @@
+services:
+  # Development environment
+  frontend-dev:
+    profiles:
+      - dev
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    env_file:
+      - .env
+    networks:
+      - network
+
+  # Production environment
+  frontend:
+    profiles:
+      - prod
+    container_name: app_prod
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.prod
+    ports:
+      - "3000:3000"
+    networks:
+      - network
+
+networks:
+  network:
+    external: true

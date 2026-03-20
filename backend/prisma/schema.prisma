@@ -1,0 +1,177 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Enums ──────────────────────────────────────
+
+enum MeetingStatus {
+  SCHEDULED
+  LIVE
+  ENDED
+  CANCELLED
+}
+
+enum MeetingType {
+  INSTANT
+  SCHEDULED
+}
+
+enum ParticipantRole {
+  HOST
+  CO_HOST
+  PARTICIPANT
+}
+
+enum ParticipantStatus {
+  INVITED
+  JOINED
+  LEFT
+  DECLINED
+}
+
+enum RecordingStatus {
+  RECORDING
+  PROCESSING
+  READY
+  FAILED
+}
+
+// ── Models ─────────────────────────────────────
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique
+  firstName String?
+  lastName  String?
+  avatarUrl String?
+  jobTitle  String?
+  company   String?
+  timezone  String   @default("UTC")
+  language  String   @default("en")
+  roleId    Int      @default(3)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  hostedMeetings      Meeting[]              @relation("MeetingHost")
+  meetingParticipants  MeetingParticipant[]
+  chatMessages         ChatMessage[]
+  ownedContacts        Contact[]              @relation("ContactOwner")
+  contactOf            Contact[]              @relation("ContactUser")
+
+  @@map("users")
+}
+
+model Meeting {
+  id              String        @id @default(uuid()) @db.Uuid
+  title           String
+  description     String?
+  code            String        @unique
+  status          MeetingStatus @default(SCHEDULED)
+  type            MeetingType
+  scheduledAt     DateTime?
+  startedAt       DateTime?
+  endedAt         DateTime?
+  hostId          String        @db.Uuid
+  livekitRoomName String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  host          User                 @relation("MeetingHost", fields: [hostId], references: [id])
+  participants  MeetingParticipant[]
+  recordings    Recording[]
+  chatMessages  ChatMessage[]
+  report        MeetingReport?
+
+  @@index([hostId])
+  @@index([status])
+  @@index([scheduledAt])
+  @@map("meetings")
+}
+
+model MeetingParticipant {
+  id        String            @id @default(uuid()) @db.Uuid
+  meetingId String            @db.Uuid
+  userId    String            @db.Uuid
+  role      ParticipantRole   @default(PARTICIPANT)
+  status    ParticipantStatus @default(INVITED)
+  joinedAt  DateTime?
+  leftAt    DateTime?
+
+  // Relations
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([meetingId, userId])
+  @@index([userId])
+  @@map("meeting_participants")
+}
+
+model Recording {
+  id          String          @id @default(uuid()) @db.Uuid
+  meetingId   String          @db.Uuid
+  storagePath String?
+  duration    Int?
+  size        BigInt?
+  status      RecordingStatus @default(RECORDING)
+  egressId    String
+  createdAt   DateTime        @default(now())
+
+  // Relations
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  @@index([meetingId])
+  @@map("recordings")
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid()) @db.Uuid
+  meetingId String   @db.Uuid
+  userId    String   @db.Uuid
+  content   String
+  createdAt DateTime @default(now())
+
+  // Relations
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([meetingId, createdAt])
+  @@map("chat_messages")
+}
+
+model MeetingReport {
+  id          String   @id @default(uuid()) @db.Uuid
+  meetingId   String   @unique @db.Uuid
+  summary     String
+  keyTopics   Json
+  actionItems Json
+  createdAt   DateTime @default(now())
+
+  // Relations
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  @@map("meeting_reports")
+}
+
+model Contact {
+  id            String   @id @default(uuid()) @db.Uuid
+  ownerId       String   @db.Uuid
+  contactUserId String   @db.Uuid
+  nickname      String?
+  createdAt     DateTime @default(now())
+
+  // Relations
+  owner       User @relation("ContactOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  contactUser User @relation("ContactUser", fields: [contactUserId], references: [id], onDelete: Cascade)
+
+  @@unique([ownerId, contactUserId])
+  @@index([ownerId])
+  @@map("contacts")
+}

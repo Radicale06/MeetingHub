@@ -1,0 +1,23 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    restart: always
+    ports:
+      - '6001:6001'
+    env_file:
+      - .env
+    volumes:
+      - generated_files:/app/generatedFiles
+      - uploaded_files:/app/uploadedFiles
+    networks:
+      - network
+
+volumes:
+  generated_files:
+  uploaded_files:
+
+networks:
+  network:
+    external: true

@@ -1,0 +1,20 @@
+.vscode
+
+# env files
+.env
+.env.old
+**/.env
+**/.env.old
+
+# Dependencies
+**/node_modules/
+
+# Build output
+**/dist/
+
+# Supabase self-hosted data volumes
+supabase/volumes/db/data/
+supabase/volumes/storage/
+supabase/volumes/logs/
+supabase/volumes/pooler/
+supabase/.env
