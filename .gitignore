@@ -18,3 +18,4 @@ supabase/volumes/storage/
 supabase/volumes/logs/
 supabase/volumes/pooler/
 supabase/.env
+.claude/*
