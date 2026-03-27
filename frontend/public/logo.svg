@@ -1,0 +1,6 @@
+<svg xmlns="http://www.开展.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <rect width="256" height="256" rx="56" fill="#1D4ED8"/>
+  <path d="M192 108v40a16 16 0 0 1-16 16H80a16 16 0 0 1-16-16V108a16 16 0 0 1 16-16h96a16 16 0 0 1 16 16Z" fill="none" stroke="white" stroke-width="16" stroke-linejoin="round"/>
+  <path d="M192 144l40 24V88l-40 24" fill="none" stroke="white" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/>
+  <rect x="96" y="112" width="64" height="32" rx="8" fill="white"/>
+</svg>

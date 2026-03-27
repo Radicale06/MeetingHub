@@ -31,9 +31,8 @@ if not exist .env (
     exit /b 1
 )
 
-call npm install
 call docker-compose up --build -d
-call npm run db:seed
+
 
 echo [BACKEND] Ready at http://localhost:6001
 echo [BACKEND] Swagger at http://localhost:6001/api

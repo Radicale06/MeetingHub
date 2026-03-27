@@ -18,6 +18,7 @@ import {
   UpdateMeetingDto,
   InviteDto,
   MeetingQueryDto,
+  CreateChatMessageDto,
 } from './dto/meeting.dto';
 import { SupabaseAuthGuard } from '../auth/supabase-auth.guard';
 
@@ -95,8 +96,8 @@ export class MeetingController {
   createChatMessage(
     @Req() req: any,
     @Param('id') id: string,
-    @Body('content') content: string,
+    @Body() dto: CreateChatMessageDto,
   ) {
-    return this.meetingService.createChatMessage(id, req.user.id, content);
+    return this.meetingService.createChatMessage(id, req.user.id, dto.content);
   }
 }

@@ -5,17 +5,21 @@ rtc:
   port_range_start: 7882
   port_range_end: 7892
   tcp_port: 7881
-  # use_external_ip: true  # Uncomment in production when behind NAT
+  use_external_ip: true
 
 turn:
   enabled: true
-  domain: localhost
+  domain: meetin.space
   tls_port: 5349
   udp_port: 3478
+  # For production TLS, provide your certs:
+  # cert_file: /etc/letsencrypt/live/meetin.space/fullchain.pem
+  # key_file: /etc/letsencrypt/live/meetin.space/privkey.pem
 
 webhook:
   urls:
-    - http://host.docker.internal:6001/livekit/webhook
+    # Use internal Docker network in production; host.docker.internal for local dev
+    - http://api:6001/livekit/webhook
 
 room:
   auto_create: true

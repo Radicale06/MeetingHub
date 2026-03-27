@@ -29,7 +29,7 @@
     "db:migrate": "prisma migrate dev",
     "db:migrate:status": "prisma migrate status",
     "db:migrate:deploy": "prisma migrate deploy",
-    "swagger:ts": "npx swagger-typescript-api -p ./swagger.json -o ./src/api -n myApi.ts"
+    "swagger:ts": "npx swagger-typescript-api generate -p ./swagger.json -o ./src/api -n myApi.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
@@ -42,6 +42,7 @@
     "@prisma/client": "^6.19.2",
     "@supabase/supabase-js": "^2.99.0",
     "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.4",
     "ioredis": "^5.10.0",
     "livekit-server-sdk": "^2.15.0",
     "or": "^0.2.0",

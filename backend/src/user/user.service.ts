@@ -34,7 +34,9 @@ export class UserService {
   }
 
   async uploadAvatar(userId: string, file: Express.Multer.File) {
-    const filePath = `avatars/${userId}/${Date.now()}-${file.originalname}`;
+    // Sanitize: use only the extension from the original name, generate a safe filename
+    const ext = (file.originalname.split('.').pop() || 'png').replace(/[^a-zA-Z0-9]/g, '');
+    const filePath = `avatars/${userId}/${Date.now()}.${ext}`;
 
     const { error } = await this.supabaseService
       .getClient()

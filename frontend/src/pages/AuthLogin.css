@@ -1,0 +1,151 @@
+.mh-auth-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--bg-main);
+  overflow: hidden;
+}
+
+.mh-auth-left {
+  flex: 1;
+  background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url('/auth-bg.png');
+  background-size: cover;
+  background-position: center;
+  color: white;
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.mh-auth-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mh-auth-logo h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.mh-logo-icon-dark {
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.mh-auth-testimonial {
+  background-color: rgba(17, 24, 39, 0.6);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  max-width: 480px;
+}
+
+.mh-testimonial-text {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.mh-testimonial-author {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.mh-author-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.mh-author-info strong {
+  font-size: 0.95rem;
+}
+
+.mh-author-info span {
+  font-size: 0.85rem;
+  color: #D1D5DB;
+}
+
+.mh-auth-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-main);
+}
+
+.mh-auth-form-wrapper {
+  width: 100%;
+  max-width: 440px;
+  padding: 2rem;
+}
+
+.mh-auth-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.mh-auth-header h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.mh-auth-header p {
+  color: var(--text-secondary);
+}
+
+.mh-social-login {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.mh-auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 2rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.mh-auth-divider::before,
+.mh-auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.mh-auth-divider span {
+  padding: 0 1rem;
+}
+
+.mh-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.mh-auth-forgot {
+  text-align: right;
+  font-size: 0.875rem;
+  margin-top: -0.5rem;
+}
+
+.mh-auth-signup {
+  text-align: center;
+  margin-top: 2rem;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 900px) {
+  .mh-auth-left {
+    display: none;
+  }
+}

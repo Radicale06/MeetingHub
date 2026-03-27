@@ -1,0 +1,158 @@
+.mh-settings-page {
+  max-width: 1000px;
+}
+
+.mh-settings-header {
+  margin-bottom: 3rem;
+}
+
+.mh-settings-header h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.mh-settings-header p {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
+.mh-settings-content {
+  display: flex;
+  gap: 4rem;
+}
+
+.mh-settings-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 240px;
+  flex-shrink: 0;
+}
+
+.mh-settings-nav a {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.mh-settings-nav a.active {
+  background-color: var(--secondary);
+  color: var(--primary);
+}
+
+.mh-settings-nav a:hover:not(.active) {
+  background-color: var(--bg-sidebar);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.mh-settings-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.mh-settings-section {
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.mh-settings-section:last-child {
+  border-bottom: none;
+}
+
+.mh-section-title {
+  margin-bottom: 2rem;
+}
+
+.mh-section-title h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.35rem;
+}
+
+.mh-section-title p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.mh-profile-photo-area {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.mh-photo-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.mh-settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.mh-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.mh-settings-success {
+  padding: 0.75rem 1rem;
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+[data-theme="dark"] .mh-settings-success {
+  background-color: #064e3b;
+  color: #a7f3d0;
+  border-color: #065f46;
+}
+
+.mh-settings-error {
+  padding: 0.75rem 1rem;
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+[data-theme="dark"] .mh-settings-error {
+  background-color: #450a0a;
+  color: #fecaca;
+  border-color: #991b1b;
+}
+
+.mh-settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .mh-settings-content {
+    flex-direction: column;
+    gap: 2rem;
+  }
+  
+  .mh-settings-nav {
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+  }
+  
+  .mh-form-row {
+    grid-template-columns: 1fr;
+  }
+}

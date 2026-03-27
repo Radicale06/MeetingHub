@@ -1,113 +1,50 @@
-import "./App.css";
-import { BrowserRouter, Routes as RouterRoutes, Route, Navigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { RootState } from "./store/store";
-import { ReactNode } from "react";
-import { Routes } from "./utils/routes_name";
-
-// Pages
-import Landing from "./pages/Landing";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import AuthCallback from "./pages/AuthCallback";
-import Unauthorized from "./pages/Unauthorized";
-
-// Dashboard
-import DashboardLayout from "./components/layout/DashboardLayout";
-import Home from "./pages/dashboard/Home";
-import Meetings from "./pages/dashboard/Meetings";
-import Recordings from "./pages/dashboard/Recordings";
-import Contacts from "./pages/dashboard/Contacts";
-import Settings from "./pages/dashboard/Settings";
-
-// Meeting
-import PreJoin from "./pages/meeting/PreJoin";
-import MeetingRoom from "./pages/meeting/MeetingRoom";
-import MeetingEnded from "./pages/meeting/MeetingEnded";
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { LandingPage } from './pages/LandingPage';
+import { AuthLogin } from './pages/AuthLogin';
+import { AuthSignup } from './pages/AuthSignup';
+import { AuthForgotPassword } from './pages/AuthForgotPassword';
+import { DashboardLayout } from './layouts/DashboardLayout';
+import { Dashboard } from './pages/Dashboard';
+import { MeetingsList } from './pages/MeetingsList';
+import { RecordingsList } from './pages/RecordingsList';
+import { ContactsList } from './pages/ContactsList';
+import Settings from './pages/Settings';
+import { ActiveMeeting } from './pages/ActiveMeeting';
 
 function App() {
-  const auth = useSelector((state: RootState) => state.authState.auth);
-
-  const PrivateRoute = ({ children }: { children: ReactNode }) => {
-    if (!auth) return <Navigate to={Routes.login} />;
-    return <>{children}</>;
-  };
-
-  const PublicRoute = ({ children }: { children: ReactNode }) => {
-    if (auth) return <Navigate to={Routes.dashboard} />;
-    return <>{children}</>;
-  };
-
   return (
+    <ThemeProvider>
+    <AuthProvider>
     <BrowserRouter>
-      <RouterRoutes>
-        {/* Public */}
-        <Route path={Routes.landing} element={<Landing />} />
-        <Route
-          path={Routes.login}
-          element={
-            <PublicRoute>
-              <Login />
-            </PublicRoute>
-          }
-        />
-        <Route
-          path={Routes.register}
-          element={
-            <PublicRoute>
-              <Register />
-            </PublicRoute>
-          }
-        />
-        <Route path={Routes.authCallback} element={<AuthCallback />} />
-        <Route path={Routes.unauthorized} element={<Unauthorized />} />
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<AuthLogin />} />
+        <Route path="/signup" element={<AuthSignup />} />
+        <Route path="/forgot-password" element={<AuthForgotPassword />} />
 
-        {/* Dashboard (protected, nested) */}
-        <Route
-          path={Routes.dashboard}
-          element={
-            <PrivateRoute>
-              <DashboardLayout />
-            </PrivateRoute>
-          }
-        >
-          <Route index element={<Home />} />
-          <Route path="meetings" element={<Meetings />} />
-          <Route path="recordings" element={<Recordings />} />
-          <Route path="contacts" element={<Contacts />} />
-          <Route path="settings" element={<Settings />} />
+        {/* Authenticated Dashboard Routes */}
+        <Route element={<DashboardLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/settings" element={<Settings />} />
+          {/* Add more sidebar routes here as needed */}
+          <Route path="/meetings" element={<MeetingsList />} />
+          <Route path="/recordings" element={<RecordingsList />} />
+          <Route path="/contacts" element={<ContactsList />} />
         </Route>
 
-        {/* Meeting (protected) */}
-        <Route
-          path="/meeting/:code"
-          element={
-            <PrivateRoute>
-              <PreJoin />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/meeting/:code/room"
-          element={
-            <PrivateRoute>
-              <MeetingRoom />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/meeting/:code/ended"
-          element={
-            <PrivateRoute>
-              <MeetingEnded />
-            </PrivateRoute>
-          }
-        />
+        {/* Fullscreen Meeting Route */}
+        <Route path="/meeting/:id" element={<ActiveMeeting />} />
+        <Route path="/meeting" element={<ActiveMeeting />} />
 
-        {/* Catch-all */}
-        <Route path="*" element={<Navigate to={Routes.landing} />} />
-      </RouterRoutes>
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </BrowserRouter>
+    </AuthProvider>
+    </ThemeProvider>
   );
 }
 

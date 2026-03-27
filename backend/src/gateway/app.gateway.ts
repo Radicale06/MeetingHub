@@ -7,9 +7,16 @@ import {
 import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { SupabaseService } from '../supabase/supabase.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @WebSocketGateway({
-  cors: { origin: '*' },
+  cors: {
+    origin: [
+      'http://localhost:3000',
+      'https://meetin.space',
+      process.env.FRONTEND_URL,
+    ].filter(Boolean),
+  },
   namespace: '/ws',
 })
 export class AppGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -19,7 +26,10 @@ export class AppGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(AppGateway.name);
   private socketUserMap = new Map<string, string>(); // socketId → userId
 
-  constructor(private readonly supabaseService: SupabaseService) {}
+  constructor(
+    private readonly supabaseService: SupabaseService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   async handleConnection(client: Socket) {
     try {
@@ -55,36 +65,26 @@ export class AppGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  /**
-   * Send event to a specific user
-   */
   sendToUser(userId: string, event: string, payload: any) {
     this.server.to(`user:${userId}`).emit(event, payload);
   }
 
-  /**
-   * Send event to multiple users
-   */
   sendToUsers(userIds: string[], event: string, payload: any) {
     for (const userId of userIds) {
       this.sendToUser(userId, event, payload);
     }
   }
 
-  /**
-   * Send to all participants of a meeting
-   */
   async sendToMeetingParticipants(
     meetingId: string,
     event: string,
     payload: any,
-    prisma: any,
   ) {
-    const participants = await prisma.meetingParticipant.findMany({
+    const participants = await this.prisma.meetingParticipant.findMany({
       where: { meetingId },
       select: { userId: true },
     });
-    const userIds = participants.map((p: any) => p.userId);
+    const userIds = participants.map((p) => p.userId);
     this.sendToUsers(userIds, event, payload);
   }
 }

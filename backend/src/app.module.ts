@@ -11,6 +11,7 @@ import { LiveKitModule } from './livekit/livekit.module';
 import { GatewayModule } from './gateway/gateway.module';
 import { RecordingModule } from './recording/recording.module';
 import { ReportModule } from './report/report.module';
+import { ContactModule } from './contact/contact.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { ReportModule } from './report/report.module';
     LiveKitModule,
     GatewayModule,
     RecordingModule,
+    ContactModule,
     ReportModule,
   ],
   controllers: [AppController],

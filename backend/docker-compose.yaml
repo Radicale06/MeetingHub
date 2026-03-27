@@ -11,8 +11,24 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+    depends_on:
+      - redis
     networks:
       - network
+
+  redis:
+    image: redis:7
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - '6379:6379'
+    restart: unless-stopped
+    networks:
+      - network
+
+volumes:
+  redis_data:
 
 networks:
   network:

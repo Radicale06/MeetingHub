@@ -1,5 +1,6 @@
 /* eslint-disable */
 /* tslint:disable */
+// @ts-nocheck
 /*
  * ---------------------------------------------------------------
  * ## THIS FILE WAS GENERATED VIA SWAGGER-TYPESCRIPT-API        ##
@@ -13,46 +14,6 @@ export interface ResponseDto {
   data: object;
 }
 
-export interface EmailDTO {
-  name: string;
-  to: string;
-  subject: string;
-}
-
-export interface UserDispoDTO {
-  goingTo: string;
-  startDay: string;
-  endDay: string;
-  startAt: string;
-  endAt: string;
-  comment: string;
-}
-
-export interface UserDTO {
-  firstName: string;
-  lastName: string;
-  phone: string;
-  email: string;
-  password: string;
-  roleId?: number;
-  companyName?: string;
-  city?: string;
-  country?: string;
-  address?: string;
-  websiteUrl?: string;
-  commercialRegister?: string;
-  patent?: string;
-  companyTypeId?: number;
-  userPackId?: number;
-  carNumber: string;
-  carTypeId: number;
-  carWidth: number;
-  carHeight: number;
-  carWeight: number;
-  disponibility: UserDispoDTO;
-  verified: boolean;
-}
-
 export interface LoginDto {
   email: string;
   password: string;
@@ -62,6 +23,18 @@ export interface AuthResponseDto {
   accessToken: object;
   refreshToken: object;
   user: object;
+}
+
+export interface RegisterDto {
+  email: string;
+  password: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+export interface OAuthCallbackDto {
+  accessToken: string;
+  refreshToken?: string;
 }
 
 export interface RefreshTokenDto {
@@ -77,10 +50,40 @@ export interface ResetPasswordDto {
   resetPasswordToken: string;
 }
 
-export type QueryParamsType = Record<string | number, any>;
-export type ResponseFormat = keyof Omit<Body, 'body' | 'bodyUsed'>;
+export interface UpdateProfileDto {
+  firstName?: string;
+  lastName?: string;
+  jobTitle?: string;
+  company?: string;
+  timezone?: string;
+  language?: string;
+}
 
-export interface FullRequestParams extends Omit<RequestInit, 'body'> {
+export interface CreateInstantMeetingDto {
+  title?: string;
+}
+
+export interface ScheduleMeetingDto {
+  title: string;
+  description?: string;
+  scheduledAt: string;
+  inviteeEmails?: string[];
+}
+
+export interface UpdateMeetingDto {
+  title?: string;
+  description?: string;
+  scheduledAt?: string;
+}
+
+export interface InviteDto {
+  emails: string[];
+}
+
+export type QueryParamsType = Record<string | number, any>;
+export type ResponseFormat = keyof Omit<Body, "body" | "bodyUsed">;
+
+export interface FullRequestParams extends Omit<RequestInit, "body"> {
   /** set parameter to `true` for call `securityWorker` for this request */
   secure?: boolean;
   /** request path */
@@ -99,16 +102,22 @@ export interface FullRequestParams extends Omit<RequestInit, 'body'> {
   cancelToken?: CancelToken;
 }
 
-export type RequestParams = Omit<FullRequestParams, 'body' | 'method' | 'query' | 'path'>;
+export type RequestParams = Omit<
+  FullRequestParams,
+  "body" | "method" | "query" | "path"
+>;
 
 export interface ApiConfig<SecurityDataType = unknown> {
   baseUrl?: string;
-  baseApiParams?: Omit<RequestParams, 'baseUrl' | 'cancelToken' | 'signal'>;
-  securityWorker?: (securityData: SecurityDataType | null) => Promise<RequestParams | void> | RequestParams | void;
+  baseApiParams?: Omit<RequestParams, "baseUrl" | "cancelToken" | "signal">;
+  securityWorker?: (
+    securityData: SecurityDataType | null,
+  ) => Promise<RequestParams | void> | RequestParams | void;
   customFetch?: typeof fetch;
 }
 
-export interface HttpResponse<D extends unknown, E extends unknown = unknown> extends Response {
+export interface HttpResponse<D extends unknown, E extends unknown = unknown>
+  extends Response {
   data: D;
   error: E;
 }
@@ -116,24 +125,26 @@ export interface HttpResponse<D extends unknown, E extends unknown = unknown> ex
 type CancelToken = Symbol | string | number;
 
 export enum ContentType {
-  Json = 'application/json',
-  FormData = 'multipart/form-data',
-  UrlEncoded = 'application/x-www-form-urlencoded',
-  Text = 'text/plain',
+  Json = "application/json",
+  JsonApi = "application/vnd.api+json",
+  FormData = "multipart/form-data",
+  UrlEncoded = "application/x-www-form-urlencoded",
+  Text = "text/plain",
 }
 
 export class HttpClient<SecurityDataType = unknown> {
-  public baseUrl: string = '';
+  public baseUrl: string = "";
   private securityData: SecurityDataType | null = null;
-  private securityWorker?: ApiConfig<SecurityDataType>['securityWorker'];
+  private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"];
   private abortControllers = new Map<CancelToken, AbortController>();
-  private customFetch = (...fetchParams: Parameters<typeof fetch>) => fetch(...fetchParams);
+  private customFetch = (...fetchParams: Parameters<typeof fetch>) =>
+    fetch(...fetchParams);
 
   private baseApiParams: RequestParams = {
-    credentials: 'same-origin',
+    credentials: "same-origin",
     headers: {},
-    redirect: 'follow',
-    referrerPolicy: 'no-referrer',
+    redirect: "follow",
+    referrerPolicy: "no-referrer",
   };
 
   constructor(apiConfig: ApiConfig<SecurityDataType> = {}) {
@@ -146,7 +157,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
   protected encodeQueryParam(key: string, value: any) {
     const encodedKey = encodeURIComponent(key);
-    return `${encodedKey}=${encodeURIComponent(typeof value === 'number' ? value : `${value}`)}`;
+    return `${encodedKey}=${encodeURIComponent(typeof value === "number" ? value : `${value}`)}`;
   }
 
   protected addQueryParam(query: QueryParamsType, key: string) {
@@ -155,43 +166,66 @@ export class HttpClient<SecurityDataType = unknown> {
 
   protected addArrayQueryParam(query: QueryParamsType, key: string) {
     const value = query[key];
-    return value.map((v: any) => this.encodeQueryParam(key, v)).join('&');
+    return value.map((v: any) => this.encodeQueryParam(key, v)).join("&");
   }
 
   protected toQueryString(rawQuery?: QueryParamsType): string {
     const query = rawQuery || {};
-    const keys = Object.keys(query).filter((key) => 'undefined' !== typeof query[key]);
+    const keys = Object.keys(query).filter(
+      (key) => "undefined" !== typeof query[key],
+    );
     return keys
-      .map((key) => (Array.isArray(query[key]) ? this.addArrayQueryParam(query, key) : this.addQueryParam(query, key)))
-      .join('&');
+      .map((key) =>
+        Array.isArray(query[key])
+          ? this.addArrayQueryParam(query, key)
+          : this.addQueryParam(query, key),
+      )
+      .join("&");
   }
 
   protected addQueryParams(rawQuery?: QueryParamsType): string {
     const queryString = this.toQueryString(rawQuery);
-    return queryString ? `?${queryString}` : '';
+    return queryString ? `?${queryString}` : "";
   }
 
   private contentFormatters: Record<ContentType, (input: any) => any> = {
     [ContentType.Json]: (input: any) =>
-      input !== null && (typeof input === 'object' || typeof input === 'string') ? JSON.stringify(input) : input,
-    [ContentType.Text]: (input: any) => (input !== null && typeof input !== 'string' ? JSON.stringify(input) : input),
-    [ContentType.FormData]: (input: any) =>
-      Object.keys(input || {}).reduce((formData, key) => {
+      input !== null && (typeof input === "object" || typeof input === "string")
+        ? JSON.stringify(input)
+        : input,
+    [ContentType.JsonApi]: (input: any) =>
+      input !== null && (typeof input === "object" || typeof input === "string")
+        ? JSON.stringify(input)
+        : input,
+    [ContentType.Text]: (input: any) =>
+      input !== null && typeof input !== "string"
+        ? JSON.stringify(input)
+        : input,
+    [ContentType.FormData]: (input: any) => {
+      if (input instanceof FormData) {
+        return input;
+      }
+
+      return Object.keys(input || {}).reduce((formData, key) => {
         const property = input[key];
         formData.append(
           key,
           property instanceof Blob
             ? property
-            : typeof property === 'object' && property !== null
+            : typeof property === "object" && property !== null
               ? JSON.stringify(property)
               : `${property}`,
         );
         return formData;
-      }, new FormData()),
+      }, new FormData());
+    },
     [ContentType.UrlEncoded]: (input: any) => this.toQueryString(input),
   };
 
-  protected mergeRequestParams(params1: RequestParams, params2?: RequestParams): RequestParams {
+  protected mergeRequestParams(
+    params1: RequestParams,
+    params2?: RequestParams,
+  ): RequestParams {
     return {
       ...this.baseApiParams,
       ...params1,
@@ -204,7 +238,9 @@ export class HttpClient<SecurityDataType = unknown> {
     };
   }
 
-  protected createAbortSignal = (cancelToken: CancelToken): AbortSignal | undefined => {
+  protected createAbortSignal = (
+    cancelToken: CancelToken,
+  ): AbortSignal | undefined => {
     if (this.abortControllers.has(cancelToken)) {
       const abortController = this.abortControllers.get(cancelToken);
       if (abortController) {
@@ -239,7 +275,7 @@ export class HttpClient<SecurityDataType = unknown> {
     ...params
   }: FullRequestParams): Promise<HttpResponse<T, E>> => {
     const secureParams =
-      ((typeof secure === 'boolean' ? secure : this.baseApiParams.secure) &&
+      ((typeof secure === "boolean" ? secure : this.baseApiParams.secure) &&
         this.securityWorker &&
         (await this.securityWorker(this.securityData))) ||
       {};
@@ -248,22 +284,34 @@ export class HttpClient<SecurityDataType = unknown> {
     const payloadFormatter = this.contentFormatters[type || ContentType.Json];
     const responseFormat = format || requestParams.format;
 
-    return this.customFetch(`${baseUrl || this.baseUrl || ''}${path}${queryString ? `?${queryString}` : ''}`, {
-      ...requestParams,
-      headers: {
-        ...(requestParams.headers || {}),
-        ...(type && type !== ContentType.FormData ? { 'Content-Type': type } : {}),
+    return this.customFetch(
+      `${baseUrl || this.baseUrl || ""}${path}${queryString ? `?${queryString}` : ""}`,
+      {
+        ...requestParams,
+        headers: {
+          ...(requestParams.headers || {}),
+          ...(type && type !== ContentType.FormData
+            ? { "Content-Type": type }
+            : {}),
+        },
+        signal:
+          (cancelToken
+            ? this.createAbortSignal(cancelToken)
+            : requestParams.signal) || null,
+        body:
+          typeof body === "undefined" || body === null
+            ? null
+            : payloadFormatter(body),
       },
-      signal: (cancelToken ? this.createAbortSignal(cancelToken) : requestParams.signal) || null,
-      body: typeof body === 'undefined' || body === null ? null : payloadFormatter(body),
-    }).then(async (response) => {
-      const r = response.clone() as HttpResponse<T, E>;
+    ).then(async (response) => {
+      const r = response as HttpResponse<T, E>;
       r.data = null as unknown as T;
       r.error = null as unknown as E;
 
+      const responseToParse = responseFormat ? response.clone() : response;
       const data = !responseFormat
         ? r
-        : await response[responseFormat]()
+        : await responseToParse[responseFormat]()
             .then((data) => {
               if (r.ok) {
                 r.data = data;
@@ -288,13 +336,15 @@ export class HttpClient<SecurityDataType = unknown> {
 }
 
 /**
- * @title TUNLOG
+ * @title MeetingHub
  * @version 1.0
  * @contact
  *
- * Tunlog apis
+ * MeetingHub Video Conferencing API
  */
-export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
+export class Api<
+  SecurityDataType extends unknown,
+> extends HttpClient<SecurityDataType> {
   /**
    * No description
    *
@@ -304,7 +354,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   appControllerGetHello = (params: RequestParams = {}) =>
     this.request<void, any>({
       path: `/`,
-      method: 'GET',
+      method: "GET",
       ...params,
     });
 
@@ -326,11 +376,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<ResponseDto, any>({
         path: `/upload`,
-        method: 'POST',
+        method: "POST",
         body: data,
         secure: true,
         type: ContentType.FormData,
-        format: 'json',
+        format: "json",
         ...params,
       }),
   };
@@ -343,151 +393,14 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/files/{filepath}
      * @secure
      */
-    appControllerSeeUploadedFile: (filepath: string, params: RequestParams = {}) =>
+    appControllerSeeUploadedFile: (
+      filepath: string,
+      params: RequestParams = {},
+    ) =>
       this.request<void, any>({
         path: `/files/${filepath}`,
-        method: 'GET',
+        method: "GET",
         secure: true,
-        ...params,
-      }),
-  };
-  article = {
-    /**
-     * No description
-     *
-     * @name ArticleControllerCreate
-     * @request GET:/article
-     */
-    articleControllerCreate: (params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/article`,
-        method: 'GET',
-        ...params,
-      }),
-  };
-  mail = {
-    /**
-     * No description
-     *
-     * @tags mail
-     * @name MailControllerCreate
-     * @request GET:/mail
-     * @secure
-     */
-    mailControllerCreate: (data: EmailDTO, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/mail`,
-        method: 'GET',
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        ...params,
-      }),
-  };
-  user = {
-    /**
-     * No description
-     *
-     * @tags user
-     * @name UserControllerCreate
-     * @request POST:/user
-     * @secure
-     */
-    userControllerCreate: (data: UserDTO, params: RequestParams = {}) =>
-      this.request<ResponseDto, any>({
-        path: `/user`,
-        method: 'POST',
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags user
-     * @name UserControllerFindAll
-     * @request GET:/user
-     * @secure
-     */
-    userControllerFindAll: (params: RequestParams = {}) =>
-      this.request<ResponseDto, any>({
-        path: `/user`,
-        method: 'GET',
-        secure: true,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags user
-     * @name UserControllerFindOne
-     * @request GET:/user/{id}
-     * @secure
-     */
-    userControllerFindOne: (id: string, params: RequestParams = {}) =>
-      this.request<ResponseDto, any>({
-        path: `/user/${id}`,
-        method: 'GET',
-        secure: true,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags user
-     * @name UserControllerUpdate
-     * @request PATCH:/user/{id}
-     * @secure
-     */
-    userControllerUpdate: (id: string, data: UserDTO, params: RequestParams = {}) =>
-      this.request<ResponseDto, any>({
-        path: `/user/${id}`,
-        method: 'PATCH',
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags user
-     * @name UserControllerRemove
-     * @request DELETE:/user/{id}
-     * @secure
-     */
-    userControllerRemove: (id: string, params: RequestParams = {}) =>
-      this.request<ResponseDto, any>({
-        path: `/user/${id}`,
-        method: 'DELETE',
-        secure: true,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags user
-     * @name UserControllerVerifieUser
-     * @request PATCH:/user/verfieUser/{id}
-     * @secure
-     */
-    userControllerVerifieUser: (id: string, params: RequestParams = {}) =>
-      this.request<ResponseDto, any>({
-        path: `/user/verfieUser/${id}`,
-        method: 'PATCH',
-        secure: true,
-        format: 'json',
         ...params,
       }),
   };
@@ -502,10 +415,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     authControllerLogin: (data: LoginDto, params: RequestParams = {}) =>
       this.request<AuthResponseDto, any>({
         path: `/auth/login`,
-        method: 'POST',
+        method: "POST",
         body: data,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -516,13 +429,33 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name AuthControllerRegister
      * @request POST:/auth/register
      */
-    authControllerRegister: (data: UserDTO, params: RequestParams = {}) =>
+    authControllerRegister: (data: RegisterDto, params: RequestParams = {}) =>
       this.request<AuthResponseDto, any>({
         path: `/auth/register`,
-        method: 'POST',
+        method: "POST",
         body: data,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags auth
+     * @name AuthControllerOauthCallback
+     * @request POST:/auth/oauth-callback
+     */
+    authControllerOauthCallback: (
+      data: OAuthCallbackDto,
+      params: RequestParams = {},
+    ) =>
+      this.request<AuthResponseDto, any>({
+        path: `/auth/oauth-callback`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
         ...params,
       }),
 
@@ -534,14 +467,17 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/auth/refresh-token
      * @secure
      */
-    authControllerRefreshToken: (data: RefreshTokenDto, params: RequestParams = {}) =>
+    authControllerRefreshToken: (
+      data: RefreshTokenDto,
+      params: RequestParams = {},
+    ) =>
       this.request<AuthResponseDto, any>({
         path: `/auth/refresh-token`,
-        method: 'POST',
+        method: "POST",
         body: data,
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -552,13 +488,15 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name AuthControllerRequestPasswordReset
      * @request POST:/auth/request-reset-password-email
      */
-    authControllerRequestPasswordReset: (data: ResetPasswordReqDto, params: RequestParams = {}) =>
-      this.request<ResetPasswordDto, any>({
+    authControllerRequestPasswordReset: (
+      data: ResetPasswordReqDto,
+      params: RequestParams = {},
+    ) =>
+      this.request<void, any>({
         path: `/auth/request-reset-password-email`,
-        method: 'POST',
+        method: "POST",
         body: data,
         type: ContentType.Json,
-        format: 'json',
         ...params,
       }),
 
@@ -569,13 +507,15 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name AuthControllerResetPassword
      * @request POST:/auth/reset-password
      */
-    authControllerResetPassword: (data: ResetPasswordDto, params: RequestParams = {}) =>
-      this.request<ResetPasswordDto, any>({
+    authControllerResetPassword: (
+      data: ResetPasswordDto,
+      params: RequestParams = {},
+    ) =>
+      this.request<void, any>({
         path: `/auth/reset-password`,
-        method: 'POST',
+        method: "POST",
         body: data,
         type: ContentType.Json,
-        format: 'json',
         ...params,
       }),
 
@@ -590,24 +530,380 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     authControllerGetAuthenticatedUser: (params: RequestParams = {}) =>
       this.request<AuthResponseDto, any>({
         path: `/auth/me`,
-        method: 'GET',
+        method: "GET",
         secure: true,
-        format: 'json',
+        format: "json",
         ...params,
       }),
   };
-  generatePdf = {
+  user = {
     /**
      * No description
      *
-     * @tags generate-pdf
-     * @name GeneratePdfControllerGetPdf
-     * @request GET:/generate-pdf
+     * @tags user
+     * @name UserControllerGetProfile
+     * @request GET:/user/me
+     * @secure
      */
-    generatePdfControllerGetPdf: (params: RequestParams = {}) =>
+    userControllerGetProfile: (params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/generate-pdf`,
-        method: 'GET',
+        path: `/user/me`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags user
+     * @name UserControllerUpdateProfile
+     * @request PATCH:/user/me
+     * @secure
+     */
+    userControllerUpdateProfile: (
+      data: UpdateProfileDto,
+      params: RequestParams = {},
+    ) =>
+      this.request<void, any>({
+        path: `/user/me`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags user
+     * @name UserControllerUploadAvatar
+     * @request POST:/user/me/avatar
+     * @secure
+     */
+    userControllerUploadAvatar: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/user/me/avatar`,
+        method: "POST",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags user
+     * @name UserControllerRemoveAvatar
+     * @request DELETE:/user/me/avatar
+     * @secure
+     */
+    userControllerRemoveAvatar: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/user/me/avatar`,
+        method: "DELETE",
+        secure: true,
+        ...params,
+      }),
+  };
+  meetings = {
+    /**
+     * No description
+     *
+     * @tags meetings
+     * @name MeetingControllerCreateInstant
+     * @request POST:/meetings/instant
+     * @secure
+     */
+    meetingControllerCreateInstant: (
+      data: CreateInstantMeetingDto,
+      params: RequestParams = {},
+    ) =>
+      this.request<void, any>({
+        path: `/meetings/instant`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meetings
+     * @name MeetingControllerSchedule
+     * @request POST:/meetings/schedule
+     * @secure
+     */
+    meetingControllerSchedule: (
+      data: ScheduleMeetingDto,
+      params: RequestParams = {},
+    ) =>
+      this.request<void, any>({
+        path: `/meetings/schedule`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meetings
+     * @name MeetingControllerList
+     * @request GET:/meetings
+     * @secure
+     */
+    meetingControllerList: (
+      query?: {
+        filter?: "upcoming" | "past" | "all";
+        limit?: number;
+        offset?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<void, any>({
+        path: `/meetings`,
+        method: "GET",
+        query: query,
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meetings
+     * @name MeetingControllerFindByCode
+     * @request GET:/meetings/{code}
+     * @secure
+     */
+    meetingControllerFindByCode: (code: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/meetings/${code}`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meetings
+     * @name MeetingControllerUpdate
+     * @request PATCH:/meetings/{id}
+     * @secure
+     */
+    meetingControllerUpdate: (
+      id: string,
+      data: UpdateMeetingDto,
+      params: RequestParams = {},
+    ) =>
+      this.request<void, any>({
+        path: `/meetings/${id}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meetings
+     * @name MeetingControllerCancel
+     * @request DELETE:/meetings/{id}
+     * @secure
+     */
+    meetingControllerCancel: (id: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/meetings/${id}`,
+        method: "DELETE",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meetings
+     * @name MeetingControllerInvite
+     * @request POST:/meetings/{id}/invite
+     * @secure
+     */
+    meetingControllerInvite: (
+      id: string,
+      data: InviteDto,
+      params: RequestParams = {},
+    ) =>
+      this.request<void, any>({
+        path: `/meetings/${id}/invite`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meetings
+     * @name MeetingControllerJoin
+     * @request POST:/meetings/{code}/join
+     * @secure
+     */
+    meetingControllerJoin: (code: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/meetings/${code}/join`,
+        method: "POST",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meetings
+     * @name MeetingControllerEndMeeting
+     * @request POST:/meetings/{id}/end
+     * @secure
+     */
+    meetingControllerEndMeeting: (id: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/meetings/${id}/end`,
+        method: "POST",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meetings
+     * @name MeetingControllerGetChatMessages
+     * @request GET:/meetings/{id}/chat
+     * @secure
+     */
+    meetingControllerGetChatMessages: (
+      id: string,
+      query: {
+        limit: number;
+        offset: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<void, any>({
+        path: `/meetings/${id}/chat`,
+        method: "GET",
+        query: query,
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meetings
+     * @name MeetingControllerCreateChatMessage
+     * @request POST:/meetings/{id}/chat
+     * @secure
+     */
+    meetingControllerCreateChatMessage: (
+      id: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<void, any>({
+        path: `/meetings/${id}/chat`,
+        method: "POST",
+        secure: true,
+        ...params,
+      }),
+  };
+  reports = {
+    /**
+     * No description
+     *
+     * @tags reports
+     * @name ReportControllerList
+     * @request GET:/reports
+     * @secure
+     */
+    reportControllerList: (
+      query: {
+        limit: number;
+        offset: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<void, any>({
+        path: `/reports`,
+        method: "GET",
+        query: query,
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags reports
+     * @name ReportControllerGetByMeeting
+     * @request GET:/reports/meeting/{meetingId}
+     * @secure
+     */
+    reportControllerGetByMeeting: (
+      meetingId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<void, any>({
+        path: `/reports/meeting/${meetingId}`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+  };
+  recordings = {
+    /**
+     * No description
+     *
+     * @tags recordings
+     * @name RecordingControllerList
+     * @request GET:/recordings
+     * @secure
+     */
+    recordingControllerList: (
+      query: {
+        limit: number;
+        offset: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<void, any>({
+        path: `/recordings`,
+        method: "GET",
+        query: query,
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags recordings
+     * @name RecordingControllerGetUrl
+     * @request GET:/recordings/{id}/url
+     * @secure
+     */
+    recordingControllerGetUrl: (id: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/recordings/${id}/url`,
+        method: "GET",
+        secure: true,
         ...params,
       }),
   };
