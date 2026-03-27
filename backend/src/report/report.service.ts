@@ -26,9 +26,9 @@ export class ReportService {
     private readonly supabase: SupabaseService,
   ) {
     this.redis = new Redis(this.config.get<string>('REDIS_URL') || 'redis://localhost:6379');
-    this.llmApiUrl = this.config.get('LLM_API_URL', 'https://api.anthropic.com/v1/messages');
+    this.llmApiUrl = this.config.get('LLM_API_URL', 'https://api.openai.com/v1/chat/completions');
     this.llmApiKey = this.config.get('LLM_API_KEY', '');
-    this.llmModel = this.config.get('LLM_MODEL', 'claude-sonnet-4-20250514');
+    this.llmModel = this.config.get('LLM_MODEL', 'gpt-4o');
   }
 
   /**
@@ -144,13 +144,15 @@ Respond ONLY with the JSON object, no other text.`;
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': this.llmApiKey,
-        'anthropic-version': '2023-06-01',
+        'Authorization': `Bearer ${this.llmApiKey}`,
       },
       body: JSON.stringify({
         model: this.llmModel,
         max_tokens: 1024,
-        messages: [{ role: 'user', content: prompt }],
+        messages: [
+          { role: 'system', content: 'You are a meeting assistant. Respond only with valid JSON.' },
+          { role: 'user', content: prompt },
+        ],
       }),
     });
 
@@ -160,7 +162,7 @@ Respond ONLY with the JSON object, no other text.`;
     }
 
     const data = await response.json();
-    const content = data.content?.[0]?.text || '{}';
+    const content = data.choices?.[0]?.message?.content || '{}';
 
     try {
       return JSON.parse(content);
