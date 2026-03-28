@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile.prod
     restart: always
     ports:
-      - '6001:6001'
+      - '6002:6001'
     env_file:
       - .env
     volumes:

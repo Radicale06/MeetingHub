@@ -1,22 +1,30 @@
-# MeetingHub — Nginx + SSL Setup
+# MeetingHub — Nginx + SSL Setup Guide
 
 Domain: `meetin.space`
+
+## Prerequisites
+
+- A VPS/server with a public IP
+- SSH access to the server
+- DNS access to `meetin.space`
+- Docker & Docker Compose installed on the server
+- The MeetingHub repo cloned on the server
 
 ---
 
 ## Step 1 — DNS Records
 
-Create 4 A records pointing to your server IP:
+Go to your domain registrar / DNS provider and create these A records, all pointing to your server's public IP:
 
 ```
-Type   Name       Value
-A      @          <YOUR_SERVER_IP>
-A      api        <YOUR_SERVER_IP>
-A      livekit    <YOUR_SERVER_IP>
-A      auth       <YOUR_SERVER_IP>
+Type   Name       Value            TTL
+A      @          <YOUR_SERVER_IP>  300
+A      api        <YOUR_SERVER_IP>  300
+A      livekit    <YOUR_SERVER_IP>  300
+A      auth       <YOUR_SERVER_IP>  300
 ```
 
-Verify:
+Verify propagation:
 ```bash
 dig +short meetin.space
 dig +short api.meetin.space
@@ -24,25 +32,36 @@ dig +short livekit.meetin.space
 dig +short auth.meetin.space
 ```
 
-Wait until all four return your server IP before proceeding.
+All four should return your server IP. Wait until they do before proceeding.
 
 ---
 
-## Step 2 — Open Firewall Ports
+## Step 2 — Install Nginx & Certbot
 
 ```bash
-sudo ufw allow 80/tcp
-sudo ufw allow 443/tcp
-sudo ufw allow 3478/udp
-sudo ufw allow 5349/tcp
-sudo ufw allow 7881/tcp
-sudo ufw allow 7882:7892/udp
+sudo apt update
+sudo apt install -y nginx certbot python3-certbot-nginx
+```
+
+---
+
+## Step 3 — Open Firewall Ports
+
+```bash
+sudo ufw allow 80/tcp       # HTTP (Certbot + redirect)
+sudo ufw allow 443/tcp      # HTTPS
+sudo ufw allow 3478/udp     # TURN/STUN
+sudo ufw allow 5349/tcp     # TURNS (TLS)
+sudo ufw allow 7881/tcp     # LiveKit TURN TCP fallback
+sudo ufw allow 7882:7892/udp  # WebRTC media
 sudo ufw reload
 ```
 
 ---
 
-## Step 3 — Deploy Initial Nginx Config (HTTP only)
+## Step 4 — Deploy the Initial Nginx Config (HTTP only)
+
+This minimal config just serves the ACME challenge so Certbot can verify domain ownership.
 
 ```bash
 sudo cp /path/to/MeetingHub/nginx/nginx.initial.conf /etc/nginx/sites-available/meetinghub
@@ -52,7 +71,7 @@ sudo nginx -t
 sudo systemctl restart nginx
 ```
 
-Verify:
+Verify it works:
 ```bash
 curl http://meetin.space
 # Should return: MeetingHub — waiting for SSL setup
@@ -60,25 +79,17 @@ curl http://meetin.space
 
 ---
 
-## Step 4 — Generate SSL Certificates
+## Step 5 — Generate SSL Certificates
 
 ```bash
 sudo certbot
 ```
 
-Certbot will interactively detect your nginx server blocks, ask which domains to secure — select all four:
-1. `meetin.space`
-2. `api.meetin.space`
-3. `livekit.meetin.space`
-4. `auth.meetin.space`
-
-It handles everything: generates certs, updates nginx config with SSL directives, and reloads nginx.
+Select the 4 meetin.space domains, choose **1 (No redirect)** — our full config handles redirects.
 
 ---
 
-## Step 5 — Deploy Full Nginx Config
-
-After certbot succeeds, replace the certbot-modified config with the production one:
+## Step 6 — Deploy SSL Snippet + Full Nginx Config
 
 ```bash
 sudo cp /path/to/MeetingHub/nginx/ssl-params.conf /etc/nginx/snippets/ssl-params.conf
@@ -89,15 +100,13 @@ sudo systemctl reload nginx
 
 Verify:
 ```bash
-curl -I https://meetin.space       # 502 is OK (frontend not running yet)
-curl -I https://api.meetin.space   # 502 is OK (backend not running yet)
+curl -I https://meetin.space       # 502 = OK (frontend not running yet)
+curl -I https://api.meetin.space   # 502 = OK (backend not running yet)
 ```
-
-No SSL errors = success.
 
 ---
 
-## Step 6 — Auto-Renewal Hook
+## Step 7 — Auto-Renewal Hook
 
 ```bash
 sudo bash -c 'cat > /etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh << "EOF"
@@ -110,7 +119,7 @@ sudo certbot renew --dry-run
 
 ---
 
-## Step 7 — LiveKit TURN TLS
+## Step 8 — LiveKit TURN TLS
 
 Uncomment the cert lines in `livekit.yaml`:
 
@@ -135,50 +144,77 @@ livekit:
 
 ---
 
-## Step 8 — Update Production Env Vars
+## Step 9 — Update Production Env Vars
 
 **Backend `.env`:**
-```
+```env
 FRONTEND_URL=https://meetin.space
 SUPABASE_URL=https://auth.meetin.space
-LIVEKIT_WS_URL=wss://livekit.meetin.space
-LIVEKIT_HTTP_URL=https://livekit.meetin.space
+LIVEKIT_URL=https://livekit.meetin.space
+LIVEKIT_PUBLIC_URL=wss://livekit.meetin.space
 ```
 
 **Frontend `.env.production`:**
-```
+```env
 VITE_BACKEND_API_URL=https://api.meetin.space
 VITE_SUPABASE_URL=https://auth.meetin.space
 VITE_SUPABASE_ANON_KEY=your-anon-key
 VITE_LIVEKIT_URL=wss://livekit.meetin.space
 ```
 
+**Agent `.env`:**
+```env
+LIVEKIT_URL=ws://livekit:7880
+```
+(Agent uses internal Docker network — no TLS needed)
+
 ---
 
-## Step 9 — Start Services
+## Step 10 — Port Mapping (Shared VPS)
+
+MeetingHub runs alongside other services on the same VPS. To avoid conflicts:
+
+| Service | Host port | Container port | Notes |
+|---------|-----------|---------------|-------|
+| Frontend | **3001** | 3000 | 3000 used by vanlog |
+| Backend | **6002** | 6001 | 6001 used by vanlog |
+| Redis | **6380** | 6379 | clean separation |
+| Supabase Kong | 8000 | 8000 | shared, already running |
+| PostgreSQL | 5432 | 5432 | shared, already running |
+| LiveKit | 7880 | 7880 | no conflict |
+| TURN/STUN | 3478/udp | 3478 | no conflict |
+| TURNS TLS | 5349 | 5349 | no conflict |
+| LibreTranslate | 5555 | 5000 | no conflict |
+
+Nginx upstreams point to `127.0.0.1:3001` (frontend) and `127.0.0.1:6002` (backend).
+
+---
+
+## Step 11 — Start MeetingHub Services
+
+Supabase is already running and shared. Only start MeetingHub-specific services:
 
 ```bash
-docker network create network
+# Create the shared Docker network (if not already)
+docker network create network 2>/dev/null || true
 
-# Infrastructure
+# Start infrastructure (LiveKit, Redis, Egress, LibreTranslate)
+cd ~/MeetingHub
 docker compose -f docker-compose.yml up -d
 
-# Supabase
-cd supabase && docker compose up -d && cd ..
-
-# Backend
+# Start backend
 cd backend && docker compose -f docker-compose.prod.yaml up -d && cd ..
 
-# Frontend
+# Build and start frontend (production)
 cd frontend && docker compose --profile prod up -d && cd ..
 
-# Agent
+# Start agent (optional — needs GPU/CPU for Whisper)
 cd agent && docker compose up -d && cd ..
 ```
 
 ---
 
-## Step 10 — Verify
+## Step 12 — Verify
 
 ```bash
 curl -I https://meetin.space          # 200
@@ -200,3 +236,4 @@ TURN test from another machine: https://webrtc.github.io/samples/src/content/pee
 | 502 Bad Gateway | Upstream service not running — check `docker ps` |
 | LiveKit clients can't connect | Check UDP ports 3478, 7882-7892 are open |
 | WebSocket 400 | Check no CDN stripping upgrade headers |
+| Port already in use | Check `docker ps` for conflicts, update host port mapping |

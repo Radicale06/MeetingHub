@@ -10,7 +10,7 @@ services:
       - .:/app
       - /app/node_modules
     ports:
-      - "3000:3000"
+      - "3001:3000"
     environment:
       - NODE_ENV=development
     env_file:
@@ -22,12 +22,12 @@ services:
   frontend:
     profiles:
       - prod
-    container_name: app_prod
+    container_name: meetinghub-frontend
     build:
       context: .
       dockerfile: docker/Dockerfile.prod
     ports:
-      - "3000:3000"
+      - "3001:3000"
     networks:
       - network
 
