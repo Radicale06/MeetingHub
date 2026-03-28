@@ -1,0 +1,15 @@
+services:
+  agent:
+    container_name: meetinghub-agent
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    restart: always
+    networks:
+      - network
+
+networks:
+  network:
+    external: true
