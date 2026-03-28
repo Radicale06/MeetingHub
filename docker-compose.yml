@@ -18,7 +18,7 @@ services:
     container_name: meetinghub-livekit
     volumes:
       - ./livekit.yaml:/etc/livekit.yaml
-    command: --config /etc/livekit.yaml --keys "${LIVEKIT_API_KEY:-devkey}: ${LIVEKIT_API_SECRET:-secret}"
+    command: ["--config", "/etc/livekit.yaml", "--keys", "${LIVEKIT_API_KEY:-devkey}: ${LIVEKIT_API_SECRET:-secret}"]
     ports:
       - "7880:7880"           # WebSocket / Client
       - "7881:7881"           # TURN TCP
